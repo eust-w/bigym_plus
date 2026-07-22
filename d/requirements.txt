@@ -1,0 +1,23 @@
+# bigym_plus/d 依赖清单
+# 单一 conda 环境: amd_bigym_plus312 (python 3.12.13)
+# 数据生成与评测共用此环境
+#
+# bigym 以 editable 模式安装 (指向本仓库 fork, 含相机 fovy 扩展).
+# mujoco / torch 走 CUDA 12.8, 无头渲染用 EGL (运行时 MUJOCO_GL=egl).
+
+# 核心物理与数值 (生成 + 评测共用)
+bigym==4.1.0
+mujoco==3.10.0
+numpy==2.2.6
+pyyaml==6.0.3
+
+# 数据生成: LeRobot Dataset v3
+lerobot[dataset]==0.6.0
+torch==2.11.0            # CUDA 12.8 build (+cu128)
+
+# 视频编解码 (生成端 lerobot 编码 + 评测端回灌视频转码)
+av==15.1.0
+
+# 评测: HTTP 推理 + 回灌录制
+opencv-python==4.11.0
+requests==2.34.2

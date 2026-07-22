@@ -13,6 +13,7 @@ class CameraConfig:
     resolution: tuple[int, int] = (128, 128)
     pos: Optional[tuple[float, float, float]] = None
     quat: Optional[tuple[float, float, float, float]] = None
+    fovy: Optional[float] = None
 
     def __post_init__(self):
         """Validation."""

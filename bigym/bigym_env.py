@@ -208,6 +208,15 @@ class BiGymEnv(gym.Env):
     def _initialize_renderers(self):
         self._close_renderers()
         self.mujoco_renderer: BiGymRenderer = BiGymRenderer(self._mojo)
+        # bigym_plus: 自适应 offscreen framebuffer 到观测相机最大分辨率
+        # (默认 offwidth=640 装不下 D455 848 宽; 不改 XML, 运行时撑大)
+        if self._observation_config.cameras:
+            max_w = max(c.resolution[1] for c in self._observation_config.cameras)
+            max_h = max(c.resolution[0] for c in self._observation_config.cameras)
+            if self._mojo.model.vis.global_.offwidth < max_w:
+                self._mojo.model.vis.global_.offwidth = max_w
+            if self._mojo.model.vis.global_.offheight < max_h:
+                self._mojo.model.vis.global_.offheight = max_h
         for camera_config in self._observation_config.cameras:
             resolution = camera_config.resolution
             if resolution in self.obs_renderers:
@@ -235,6 +244,8 @@ class BiGymEnv(gym.Env):
                 camera.set_position(np.array(camera_config.pos))
             if camera_config.quat is not None:
                 camera.set_quaternion(np.array(camera_config.quat))
+            if camera_config.fovy is not None:
+                self._mojo.model.cam_fovy[camera.id] = camera_config.fovy
         return cameras_map
 
     def _close_renderers(self):

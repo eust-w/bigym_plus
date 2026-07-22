@@ -1,0 +1,45 @@
+# bigym_plus 评测 per-task maxstep (单 episode 最大步数 @20Hz)
+# 来源: eval_rules.md, maxstep = ceil(max(step_count_20hz) × 1.5)
+# step 统计: 20Hz (500Hz 原始 demo 经 decimate 降频, decimation_rate=25)
+# key = env_class (PascalCase, 与 tasks.py TASKS key / demo cache 目录名对齐)
+# 由 eval_bigym_plus.py 读取 (tasks.load_maxstep / get_maxstep)
+CupboardsCloseAll: 936
+CupboardsOpenAll: 1349
+DishwasherClose: 414
+DishwasherCloseTrays: 447
+DishwasherLoadCups: 423
+DishwasherLoadCutlery: 792
+DishwasherLoadPlates: 821
+DishwasherOpen: 438
+DishwasherOpenTrays: 569
+DishwasherUnloadCups: 582
+DishwasherUnloadCupsLong: 1038
+DishwasherUnloadCutlery: 909
+DishwasherUnloadCutleryLong: 1203
+DishwasherUnloadPlates: 1199
+DishwasherUnloadPlatesLong: 1535
+DrawerTopClose: 120
+DrawerTopOpen: 261
+DrawersAllClose: 258
+DrawersAllOpen: 699
+FlipCup: 303
+FlipCutlery: 722
+FlipSandwich: 939
+GroceriesStoreLower: 1898
+GroceriesStoreUpper: 1140
+MovePlate: 201
+MoveTwoPlates: 311
+PickBox: 797
+PutCups: 503
+ReachTarget: 117
+ReachTargetDual: 138
+ReachTargetSingle: 114
+RemoveSandwich: 783
+SaucepanToHob: 641
+StackBlocks: 1688
+StoreBox: 902
+StoreKitchenware: 1178
+TakeCups: 611
+ToastSandwich: 1043
+WallCupboardClose: 165
+WallCupboardOpen: 354
