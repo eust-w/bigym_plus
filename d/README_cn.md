@@ -35,10 +35,10 @@ python download_demos.py
 CUDA_VISIBLE_DEVICES=0 MUJOCO_GL=egl python generate_dataset.py --group reach --probe
 ```
 
-评测(在 eval/ 下,先起好 VLA HTTP 服务):
+评测(在 eval/ 下,先起好 VLA HTTP 服务; 产物落进 {output-dir}/{任务名}/, 含全部视频 + results.json):
 
 ```
 CUDA_VISIBLE_DEVICES=0 MUJOCO_GL=egl python eval_bigym.py \
     --task ReachTargetDual --base-url http://localhost:7891 \
-    --n-episodes 50 --output results/reach_dual.json
+    --output-dir eval_videos --n-episodes 50
 ```

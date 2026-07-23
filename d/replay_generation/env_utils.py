@@ -1,6 +1,6 @@
 """bigym_plus env 构建 + state 提取 (D405/D455 相机, fovy=58, 20Hz).
 
-采集传感器规格 (与 bigym_plus.md 对齐):
+采集传感器规格:
   手部相机 D405 (left_wrist / right_wrist): H=480 W=640 fovy=58
   头部相机 D455 (head):                     H=480 W=848 fovy=58
 控制频率 20Hz. fovy 经 CameraConfig.fovy (bigym_plus 对 bigym 的扩展) 在
