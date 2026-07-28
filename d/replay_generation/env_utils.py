@@ -45,6 +45,8 @@ def build_env(
     with_cameras=True,
     render_mode=None,
     cameras=None,
+    visual_shell_profile=None,
+    visual_shell_strict=True,
 ):
     """构建指定任务的 BiGym env.
 
@@ -53,6 +55,9 @@ def build_env(
     :param with_cameras: 是否挂观测相机 (D405/D455).
     :param render_mode: None / "rgb_array" (评测回灌视频用 rgb_array).
     :param cameras: 自定义 CameraConfig 列表; 默认 D405/D455 原生分辨率.
+    :param visual_shell_profile: 可选本地 JSON 配置路径或已注册壳名称。使用
+        ``dl3dv-kitchen-bigym-h1`` 可自动下载、校验、缓存并载入成品壳。
+    :param visual_shell_strict: 正式采集默认 True，背景渲染失败立即中止。
     """
     from bigym.action_modes import JointPositionActionMode
     from bigym.utils.observation_config import ObservationConfig
@@ -68,6 +73,8 @@ def build_env(
         control_frequency=control_frequency,
         observation_config=ObservationConfig(cameras=cams),
         render_mode=render_mode,
+        visual_shell_profile=visual_shell_profile,
+        visual_shell_strict=visual_shell_strict,
     )
 
 

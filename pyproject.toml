@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bigym"
-version = "4.1.0"
+version = "4.2.0"
 description = "BiGym: A Demo-Driven Mobile Bi-Manual Manipulation Benchmark"
 readme = "README.md"
 license = "Apache-2.0"
@@ -51,6 +51,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pre-commit", "pytest"]
+visual-shell = ["gaussian_renderer==0.2.0"]
 examples = [
     "moviepy",
     "pygame",

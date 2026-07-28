@@ -131,6 +131,27 @@ python tools/demo_player/main.py
 <img src="doc/images/demo_player/player_window.png" width=360>
 <img src="doc/images/demo_player/player_mujoco.png" width=360>
 
+## Optional 3DGS kitchen visual shell
+
+BiGym can composite a finished, visual-only Gaussian kitchen shell behind its
+MuJoCo task geometry. The first use downloads and SHA-256 verifies the release
+bundle; later runs use the local cache:
+
+```python
+env = DishwasherLoadPlates(
+    action_mode=JointPositionActionMode(
+        floating_base=True,
+        absolute=True,
+    ),
+    observation_config=ObservationConfig(cameras=cameras),
+    visual_shell_profile="dl3dv-kitchen-bigym-h1",
+)
+```
+
+The shell adds no MJCF body, geom, collision, or contact. See the
+[visual-shell guide](doc/visual-shell.md) for CUDA dependencies, profile quality
+limits, custom scene alignment, offline installation, and asset licensing.
+
 ### [VR Demo Recorder](tools/demo_recorder/main.py)
 
 Record new demos in VR. Follow [VR README](vr/README.md) to configure docker container to run this tool.

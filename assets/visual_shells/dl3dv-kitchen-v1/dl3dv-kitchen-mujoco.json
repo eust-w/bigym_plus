@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "dl3dv-kitchen-mujoco",
+  "description": "Center-clean, visual-only DL3DV kitchen shell for MuJoCo-driven native 3DGS rendering.",
+  "source": {
+    "dataset": "DL3DV-10K",
+    "scene_hash": "951f9db189a7023708b7798e147e04048a84ce039c5761e8ecb1aa65dcb2da86",
+    "revision": "abb4dab0d4b6d93c32e6d901c06c35bad03210fb",
+    "license": "DL3DV-10K Terms of Use and CC BY-NC 4.0; non-commercial use only"
+  },
+  "layer_files": {
+    "walls_decor": "walls_fixed_kitchen.ply",
+    "floor": "floor_perimeter.ply",
+    "ceiling": "ceiling_lights.ply"
+  },
+  "alignment": {
+    "path": "alignment-mujoco.json"
+  },
+  "ground_visual": {
+    "mode": "gaussian",
+    "z_m": 0.0
+  },
+  "integration_contract": {
+    "native_background_geom_names": ["floor"],
+    "foreground_compositing": "MuJoCo segmentation overwrites the visual shell for robot, table, props, and task geometry",
+    "formal_collection_failure_policy": "abort",
+    "background_physics": {
+      "body_count": 0,
+      "geom_count": 0,
+      "collision_count": 0
+    }
+  },
+  "quality": {
+    "status": "reconstruction_passed_visual_review_required",
+    "training": {
+      "strategy": "mcmc",
+      "steps": 30000,
+      "psnr": 35.16229248046875,
+      "ssim": 0.9589212536811829,
+      "lpips": 0.13073210418224335
+    },
+    "capture_path_max_translation_m": 0.034,
+    "capture_path_max_rotation_degrees": 3.18
+  }
+}

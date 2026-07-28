@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "name": "dl3dv-kitchen-bigym-h1",
+  "description": "Visual-only DL3DV kitchen shell aligned to the initial BiGym H1 head and wrist cameras.",
+  "source": {
+    "dataset": "DL3DV-10K",
+    "scene_hash": "951f9db189a7023708b7798e147e04048a84ce039c5761e8ecb1aa65dcb2da86",
+    "revision": "abb4dab0d4b6d93c32e6d901c06c35bad03210fb",
+    "license": "DL3DV-10K Terms of Use and CC BY-NC 4.0; non-commercial use only"
+  },
+  "layer_files": {
+    "walls_decor": "walls_fixed_kitchen.ply",
+    "floor": "floor_perimeter.ply",
+    "ceiling": "ceiling_lights.ply"
+  },
+  "alignment": {
+    "path": "alignment-bigym-h1.json"
+  },
+  "ground_visual": {
+    "mode": "gaussian_with_metric_fallback",
+    "z_m": 0.0,
+    "hybrid_compositing": "native_floor_blue_neutralization",
+    "low_blue_dominance": 6.0,
+    "high_blue_dominance": 35.0
+  },
+  "integration_contract": {
+    "camera_names": ["head", "left_wrist", "right_wrist"],
+    "native_background_geom_names": ["floor"],
+    "foreground_compositing": "MuJoCo segmentation overwrites the visual shell for robot, table, props, and task geometry",
+    "formal_collection_failure_policy": "abort",
+    "observations": {
+      "rgb_head": {
+        "shape_chw": [3, 480, 848],
+        "fovy_degrees": 58.0
+      },
+      "rgb_left_wrist": {
+        "shape_chw": [3, 480, 640],
+        "fovy_degrees": 58.0
+      },
+      "rgb_right_wrist": {
+        "shape_chw": [3, 480, 640],
+        "fovy_degrees": 58.0
+      }
+    },
+    "background_physics": {
+      "body_count": 0,
+      "geom_count": 0,
+      "collision_count": 0
+    }
+  },
+  "quality": {
+    "status": "diagnostic_camera_extrapolation",
+    "formal_collection_recommended": false,
+    "reason": "The fixed BiGym H1 cameras are substantially farther from the training trajectory than the clear MuJoCo preview camera path, so this profile can look soft.",
+    "training": {
+      "strategy": "mcmc",
+      "steps": 30000,
+      "psnr": 35.16229248046875,
+      "ssim": 0.9589212536811829,
+      "lpips": 0.13073210418224335
+    },
+    "per_camera_capture_path": {
+      "head": {
+        "translation_m": 0.24746081361246045,
+        "rotation_degrees": 63.52078177915254
+      },
+      "left_wrist": {
+        "translation_m": 0.22670385874276236,
+        "rotation_degrees": 41.67148243312422
+      },
+      "right_wrist": {
+        "translation_m": 0.23810388464432483,
+        "rotation_degrees": 41.66717063442102
+      }
+    }
+  }
+}

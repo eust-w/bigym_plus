@@ -35,3 +35,7 @@ pip-delete-this-directory.txt
 # uv
 uv.lock
 .venv
+
+# Optional 3DGS visual-shell binaries are versioned GitHub Release assets.
+/assets/visual_shells/**/*.ply
+/assets/visual_shells/**/*.tar.gz
