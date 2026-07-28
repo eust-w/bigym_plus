@@ -62,7 +62,7 @@ def check_success(env, reward, info):
     return False
 
 
-def run_eval(task, base_url, n_episodes, max_steps, replan_step, seed0,
+def run_eval(task, base_url, n_episodes, max_steps, seed0,
              out_dir, tag):
     prompt = TASKS[task]["prompt"]
     env = build_env(task, render_mode="rgb_array")
@@ -92,7 +92,7 @@ def run_eval(task, base_url, n_episodes, max_steps, replan_step, seed0,
                 except Exception as e:
                     print(f"  ep{ep} step{step} err: {e}")
                     break
-                queue = chunk[:replan_step].tolist()
+                queue = chunk.tolist()  # server 侧已 slice; client 零 slice 逻辑, 执行返回的全部动作
             action16 = np.array(queue.pop(0), dtype=np.float32)
             action = drop_z(action16, task)  # 3-DOF: 16->15 (去 Z); 4-DOF: 原样
             # 裁剪到 action_space 边界 (BiGym env.step 对超界严格抛错)
@@ -130,7 +130,8 @@ def main():
     ap.add_argument("--n-episodes", type=int, default=50)
     ap.add_argument("--max-steps", type=int, default=None,
                     help="覆盖 max_step_limit.yaml 的 per-task maxstep")
-    ap.add_argument("--replan-step", type=int, default=10)
+    # replan/slice 已移到推理 server (--inference-config.replan-step); bigym 零 slice,
+    # server 返回几组动作就执行几组。
     ap.add_argument("--seed0", type=int, default=0)
     ap.add_argument("--tag", default="eval", help="视频文件名 tag")
     args = ap.parse_args()
@@ -141,10 +142,10 @@ def main():
     max_steps = args.max_steps if args.max_steps is not None else get_maxstep(task)
     ms_src = "override" if args.max_steps is not None else "yaml"
     print(f"[{task}] eval {args.base_url} eps={args.n_episodes} "
-          f"max_steps={max_steps} ({ms_src}) replan={args.replan_step} "
+          f"max_steps={max_steps} ({ms_src}) "
           f"out={out_dir}")
     rate, succ = run_eval(
-        task, args.base_url, args.n_episodes, max_steps, args.replan_step,
+        task, args.base_url, args.n_episodes, max_steps,
         args.seed0, out_dir, args.tag,
     )
     print(f"[{task}] === success rate: {rate * 100:.1f}% "
@@ -155,7 +156,7 @@ def main():
             {
                 "task": task, "base_url": args.base_url, "success_rate": rate,
                 "successes": succ, "n_episodes": args.n_episodes,
-                "replan_step": args.replan_step, "max_steps": max_steps,
+                "max_steps": max_steps,
             }, f, indent=2,
         )
     print(f"saved {results_path}")
