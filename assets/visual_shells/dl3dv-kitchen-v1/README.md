@@ -21,6 +21,9 @@ Profiles:
   This profile is useful for integration testing, but its camera extrapolation
   is visibly softer and is marked diagnostic rather than collection-ready.
 
+The machine-readable A800 integration evidence is recorded in
+`a800-validation-report.json`.
+
 The shell is visual only. It is never added to MJCF and contributes zero MuJoCo
 bodies, geoms, collisions, or contacts.
 

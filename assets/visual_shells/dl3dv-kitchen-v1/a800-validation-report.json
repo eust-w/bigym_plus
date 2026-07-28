@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "tested_repository": "https://github.com/WuChao-2024/bigym_plus",
+  "tested_base_commit": "7fdd88fd408407e5fb47a9a2419c18615570c989",
+  "tested_worktree_branch": "agent/bigym-plus-3dgs-shell",
+  "hardware": {
+    "gpu": "NVIDIA A800-SXM4-80GB",
+    "cuda": "12.1"
+  },
+  "asset": {
+    "asset_id": "dl3dv-kitchen-v1",
+    "profile": "/scratch/cache/visual-shells/dl3dv-kitchen-v1/dl3dv-kitchen-bigym-h1.json",
+    "bundle_sha256": "bc72810aca750b3392e416ba696b81258218bbbcd54886cf1375da22e9b0dc26"
+  },
+  "continuous_frames": 300,
+  "resets_during_test": 0,
+  "cameras": {
+    "head": {
+      "shape": [
+        3,
+        480,
+        848
+      ],
+      "fovy_degrees": 58.0,
+      "changed_from_native": true
+    },
+    "left_wrist": {
+      "shape": [
+        3,
+        480,
+        640
+      ],
+      "fovy_degrees": 58.0,
+      "changed_from_native": true
+    },
+    "right_wrist": {
+      "shape": [
+        3,
+        480,
+        640
+      ],
+      "fovy_degrees": 58.0,
+      "changed_from_native": true
+    }
+  },
+  "physics_parity": {
+    "max_abs_qpos_error": 0.0,
+    "max_abs_time_error": 0.0,
+    "max_abs_contact_count_error": 0
+  },
+  "render_ms": {
+    "median": 286.88611020334065,
+    "p95": 298.59677269123495
+  },
+  "visual_shell": {
+    "enabled": true,
+    "profile": "/scratch/cache/visual-shells/dl3dv-kitchen-v1/dl3dv-kitchen-bigym-h1.json",
+    "strict": true,
+    "rendered_frames": 903,
+    "last_error": null,
+    "background_physics": {
+      "body_count": 0,
+      "geom_count": 0,
+      "collision_count": 0
+    },
+    "foreground_occlusion": {
+      "method": "MuJoCo segmentation foreground overwrite",
+      "native_background_geom_names": [
+        "floor"
+      ]
+    },
+    "ground_visual": {
+      "mode": "gaussian_with_metric_fallback",
+      "z_m": 0.0,
+      "gaussian_floor_loaded": true,
+      "collision_geometry_added": false
+    }
+  },
+  "quality_disclosure": "Technical integration passed. The bundled H1 alignment remains diagnostic because its cameras extrapolate from the capture path."
+}
