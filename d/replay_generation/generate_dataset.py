@@ -124,7 +124,7 @@ def _check_skip(dataset_root, target_total, probe):
     return False
 
 
-def _collect_tasks(dataset, tasks, amount, probe, done_set, progress_path, target_total):
+def _collect_tasks(dataset, tasks, amount, probe, done_set, progress_path, target_total, keep_failures=False):
     """把 tasks 列表里每个任务的 demo replay 进 dataset. 返回新增 episode 数."""
     from demonstrations.demo_store import DemoStore
     from demonstrations.utils import Metadata
@@ -172,10 +172,24 @@ def _collect_tasks(dataset, tasks, amount, probe, done_set, progress_path, targe
                 }
                 dataset.add_frame(frame)
                 obs, _r, _term, _trunc, _info = env.step(raw_action)  # 原始维度 (15/16)
+            # replay success 过滤 (口径同 check_demo_success: env.reward>0, reward∈{0,1})
+            if not keep_failures and env.reward <= 0:
+                print(f"    demo {di}: replay 未达 success (reward={env.reward}), 丢弃")
+                try:
+                    dataset.clear_episode_buffer()  # 丢已 add 帧 + 删临时图片, 不留痕迹
+                except Exception as e:
+                    print(f"    demo {di}: clear_episode_buffer fail {e}")
+                done_set.add((task, di))  # 标已判定, resume 不重判 (同环境重放确定性)
+                _save_progress(progress_path, done_set)
+                continue
             try:
                 dataset.save_episode()
             except Exception as e:
                 print(f"    demo {di}: save_episode fail {e}")
+                try:
+                    dataset.clear_episode_buffer()  # 防残留缓冲污染下一条 demo
+                except Exception:
+                    pass
                 continue
             n_done += 1
             done_set.add((task, di))
@@ -191,7 +205,7 @@ def _collect_tasks(dataset, tasks, amount, probe, done_set, progress_path, targe
 
 
 def _run(rid, dataset_root, tasks, label, n_demos_total, amount, probe, force,
-         vcodec, image_writer_threads):
+         vcodec, image_writer_threads, keep_failures=False):
     """通用采集入口: 开 dataset -> (skip 检查) -> collect -> finalize."""
     target_total = _target(tasks, amount, probe)
     print(f"\n=== {label}: {len(tasks)} 任务 / {n_demos_total} demos ===")
@@ -201,27 +215,29 @@ def _run(rid, dataset_root, tasks, label, n_demos_total, amount, probe, force,
     if _check_skip(dataset_root, target_total, probe):
         dataset.finalize()
         return
-    n = _collect_tasks(dataset, tasks, amount, probe, done_set, progress_path, target_total)
+    n = _collect_tasks(dataset, tasks, amount, probe, done_set, progress_path, target_total, keep_failures=keep_failures)
     dataset.finalize()
     print(f"    DONE {label}: {n} episodes -> {dataset_root}")
 
 
 def gen_group(group_key, root, amount=None, probe=False, force=False,
-              vcodec=None, image_writer_threads=4):
+              vcodec=None, image_writer_threads=4, keep_failures=False):
     name, tasks = GROUPS_DICT[group_key]
     _, _n_tasks, n_demos_total, dim_dist = group_summary(group_key)
     label = f"组 [{group_key}] {name} (维度分布 {dim_dist})"
     _run(repo_id(group_key), os.path.join(root, group_key), tasks,
-         label, n_demos_total, amount, probe, force, vcodec, image_writer_threads)
+         label, n_demos_total, amount, probe, force, vcodec, image_writer_threads,
+         keep_failures=keep_failures)
 
 
 def gen_task(task_key, root, amount=None, probe=False, force=False,
-             vcodec=None, image_writer_threads=4):
+             vcodec=None, image_writer_threads=4, keep_failures=False):
     task = resolve_task(task_key)
     snake = task_to_snake(task)
     label = f"单任务 [{task}] (dim={action_dim(task)})"
     _run(f"bigym_plus/{snake}", os.path.join(root, snake), [task],
-         label, TASKS[task]["n_demos"], amount, probe, force, vcodec, image_writer_threads)
+         label, TASKS[task]["n_demos"], amount, probe, force, vcodec, image_writer_threads,
+         keep_failures=keep_failures)
 
 
 def main():
@@ -234,6 +250,8 @@ def main():
     ap.add_argument("--vcodec", default=None, help="视频编码 (默认 libsvtav1; 不可用改 h264)")
     ap.add_argument("--force", action="store_true", help="删除已存在目录, 从头重建")
     ap.add_argument("--image-writer-threads", type=int, default=4)
+    ap.add_argument("--keep-failures", action="store_true",
+                    help="不过滤 replay 失败的 demo (默认丢弃未达 success 的; 加此开关保留旧行为)")
     args = ap.parse_args()
 
     if args.task and args.group:
@@ -242,7 +260,8 @@ def main():
         ap.error("必须指定 --task <任务名> 或 --group <组名|all>")
 
     kw = dict(root=args.root, amount=args.amount, probe=args.probe, force=args.force,
-              vcodec=args.vcodec, image_writer_threads=args.image_writer_threads)
+              vcodec=args.vcodec, image_writer_threads=args.image_writer_threads,
+              keep_failures=args.keep_failures)
     if args.task:
         gen_task(args.task, **kw)
     else:
