@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "gaussian_to_mujoco": [
+    [
+      0.38247035228010096,
+      1.3307345205765189,
+      -0.03188005234663084,
+      -0.6678936259163948
+    ],
+    [
+      -1.3310314660491644,
+      0.3819617038386979,
+      -0.02479446616801436,
+      -0.26462887714219213
+    ],
+    [
+      -0.015031246743152472,
+      0.03748552936170436,
+      1.3843854842762275,
+      2.515275980895251
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "mujoco_to_gaussian": [
+    [
+      0.19939499016862205,
+      -0.6939126248735594,
+      -0.00783630751692373,
+      -0.030744199705569228
+    ],
+    [
+      0.6937578169538192,
+      0.1991298141873514,
+      0.019542499736211614,
+      0.4668971428139161
+    ],
+    [
+      -0.01662017117493146,
+      -0.012926210641777573,
+      0.7217279153305063,
+      -1.8298660451696371
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "coordinate_convention": {
+    "mujoco": "+Z up, meters",
+    "gaussian": "trained COLMAP/gsplat frame; PLY records are not transformed",
+    "renderer_camera_adapter": "MuJoCo camera is mapped through mujoco_to_gaussian before rasterization"
+  },
+  "scale_estimation": {
+    "method": "camera-up plus XY-PCA, floor quantile, median camera-height scale",
+    "camera_height_assumption_m": 1.55,
+    "raw_camera_height": 1.1191542065868163,
+    "scale": 1.38497446632236,
+    "floor_quantile": 0.01,
+    "estimated_yaw_degrees": 73.97647399762675,
+    "warning": "scale is estimated, not surveyed"
+  }
+}

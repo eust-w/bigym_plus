@@ -58,6 +58,8 @@ class BiGymEnv(gym.Env):
         start_seed: Optional[int] = None,
         control_frequency: int = CONTROL_FREQUENCY_MAX,
         robot_cls: Optional[Type[Robot]] = None,
+        visual_shell_profile: Optional[str | Path] = None,
+        visual_shell_strict: bool = True,
     ):
         """Init.
 
@@ -72,6 +74,11 @@ class BiGymEnv(gym.Env):
             seed will be used.
         :param control_frequency: Control loop frequency, 500 Hz by default.
         :param robot_cls: Environment robot class override.
+        :param visual_shell_profile: Optional local JSON profile path or registered
+            visual-shell name. Registered assets are downloaded, SHA-256 verified,
+            cached, and composited behind MuJoCo camera observations.
+        :param visual_shell_strict: Abort observation generation if the optional
+            Gaussian renderer fails. Formal data collection should keep this True.
         """
         # Tracks physics simulation stability
         self._env_health = EnvHealth()
@@ -128,7 +135,20 @@ class BiGymEnv(gym.Env):
 
         self.mujoco_renderer: Optional[BiGymRenderer] = None
         self.obs_renderers: Optional[dict[tuple[int, int], mujoco.Renderer]] = {}
+        self._visual_shell = None
         self._initialize_renderers()
+        if visual_shell_profile is not None:
+            from bigym.utils.visual_shell import GaussianVisualShell
+            from bigym.utils.visual_shell_assets import (
+                resolve_visual_shell_profile,
+            )
+
+            profile_path = resolve_visual_shell_profile(visual_shell_profile)
+            self._visual_shell = GaussianVisualShell(
+                profile_path,
+                self._mojo.model,
+                strict=visual_shell_strict,
+            )
 
     @property
     def task_name(self) -> str:
@@ -249,6 +269,8 @@ class BiGymEnv(gym.Env):
         return cameras_map
 
     def _close_renderers(self):
+        if getattr(self, "_visual_shell", None) is not None:
+            self._visual_shell = None
         if self.mujoco_renderer is not None:
             self.mujoco_renderer.close()
         for renderer in self.obs_renderers.values():
@@ -368,6 +390,24 @@ class BiGymEnv(gym.Env):
             )
             if camera_config.rgb:
                 rgb = obs_renderer.render()
+                if self._visual_shell is not None:
+                    obs_renderer.enable_segmentation_rendering()
+                    segmentation = obs_renderer.render()
+                    obs_renderer.disable_segmentation_rendering()
+                    foreground = self._visual_shell.native_foreground_mask(
+                        segmentation
+                    )
+                    native_floor = self._visual_shell.native_floor_mask(
+                        segmentation
+                    )
+                    rgb = self._visual_shell.render_rgb(
+                        self._mojo.model,
+                        self._mojo.data,
+                        self._cameras_map[camera_config.name][0],
+                        rgb,
+                        native_foreground_mask=foreground,
+                        native_floor_mask=native_floor,
+                    )
                 obs[f"rgb_{camera_config.name}"] = np.moveaxis(rgb, -1, 0)
             if camera_config.depth:
                 obs_renderer.enable_depth_rendering()
