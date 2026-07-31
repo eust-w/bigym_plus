@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BiGym Desktop Teleop</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101315;
+      --panel: #181d20;
+      --panel-2: #20272b;
+      --line: #344047;
+      --text: #edf2f4;
+      --muted: #9eabb1;
+      --green: #49c98b;
+      --amber: #f0b84b;
+      --red: #f06a6a;
+      --blue: #56a8d8;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+    button, input { font: inherit; letter-spacing: 0; }
+    button { border: 1px solid var(--line); background: var(--panel-2); color: var(--text); border-radius: 5px; min-height: 36px; padding: 0 12px; cursor: pointer; }
+    button:hover { border-color: #62737c; }
+    button:disabled { opacity: .42; cursor: not-allowed; }
+    button.primary { background: #186b4a; border-color: #299767; }
+    button.danger { background: #6e2929; border-color: #9c4444; }
+    button.warn { background: #634915; border-color: #9a7626; }
+    header { height: 58px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 18px; padding: 0 18px; background: #14191b; }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 300px; }
+    .brand-logo-shell { flex: 0 0 auto; display: flex; align-items: center; height: 34px; padding: 4px 8px; background: #fff; border-radius: 5px; }
+    .brand-logo { display: block; width: 126px; height: auto; }
+    .brand-copy { display: grid; gap: 1px; min-width: 0; }
+    .brand strong { font-size: 14px; line-height: 1.2; white-space: nowrap; }
+    .brand span { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-strip { display: flex; gap: 14px; align-items: center; flex: 1; min-width: 0; overflow: hidden; }
+    .metric { color: var(--muted); white-space: nowrap; }
+    .metric b { color: var(--text); font-weight: 600; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); display: inline-block; margin-right: 7px; }
+    .dot.online { background: var(--green); }
+    .header-actions { display: flex; gap: 8px; }
+    main { display: grid; grid-template-columns: minmax(560px, 1fr) 410px; height: calc(100vh - 58px); }
+    .vision { min-width: 0; min-height: 0; overflow: hidden; padding: 14px; display: grid; grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px; border-right: 1px solid var(--line); }
+    .camera { position: relative; background: #050607; overflow: hidden; min-height: 0; border: 1px solid var(--line); border-radius: 5px; }
+    .camera img { width: 100%; height: 100%; display: block; object-fit: contain; }
+    .camera-label { position: absolute; left: 10px; top: 9px; background: rgba(8, 11, 12, .72); padding: 4px 7px; border-radius: 3px; color: #dbe3e6; }
+    .camera-meta { position: absolute; right: 10px; top: 9px; background: rgba(8, 11, 12, .72); padding: 4px 7px; border-radius: 3px; color: var(--muted); }
+    .wrist-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; }
+    aside { overflow-y: auto; background: var(--panel); }
+    .section { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .section h2 { margin: 0 0 12px; font-size: 13px; font-weight: 650; color: #d8e0e3; }
+    .episode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .episode-grid button { width: 100%; }
+    .seed-row { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; margin-bottom: 10px; color: var(--muted); }
+    .seed-row input { width: 100%; height: 34px; background: #0d1113; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 0 9px; }
+    .message { margin-top: 10px; min-height: 20px; color: var(--muted); overflow-wrap: anywhere; }
+    .message.success { color: var(--green); }
+    .message.error { color: var(--red); }
+    .policy-panel { display: grid; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .policy-panel[hidden] { display: none; }
+    .policy-head { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+    .policy-head b { color: var(--text); font-weight: 600; }
+    .policy-progress { width: 100%; height: 7px; accent-color: var(--green); }
+    .policy-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; color: var(--muted); font-size: 11px; }
+    .policy-check::before { content: "○"; display: inline-block; width: 16px; color: #718087; }
+    .policy-check.done { color: #d9e4de; }
+    .policy-check.done::before { content: "●"; color: var(--green); }
+    .randomization-line { color: var(--muted); font-size: 11px; line-height: 1.5; }
+    #policyBtn { grid-column: 1 / -1; }
+    .keys { display: grid; grid-template-columns: repeat(5, 42px); grid-template-rows: repeat(2, 38px); gap: 7px; justify-content: center; }
+    .key { border: 1px solid #46535a; border-bottom-width: 3px; background: #222a2e; border-radius: 5px; display: grid; place-items: center; font-weight: 650; color: #d9e1e4; }
+    .key.active { background: #1d704f; border-color: var(--green); }
+    .key[data-code="KeyQ"] { grid-column: 1; grid-row: 1; }
+    .key[data-code="KeyW"] { grid-column: 2; grid-row: 1; }
+    .key[data-code="KeyR"] { grid-column: 3; grid-row: 1; }
+    .key[data-code="KeyA"] { grid-column: 1; grid-row: 2; }
+    .key[data-code="KeyS"] { grid-column: 2; grid-row: 2; }
+    .key[data-code="KeyD"] { grid-column: 3; grid-row: 2; }
+    .key[data-code="KeyE"] { grid-column: 4; grid-row: 1; }
+    .key[data-code="KeyF"] { grid-column: 4; grid-row: 2; }
+    .key.pause { grid-column: 5; grid-row: 1 / 3; font-size: 11px; text-align: center; }
+    .key-caption { display: flex; justify-content: space-between; color: var(--muted); margin-top: 10px; font-size: 12px; }
+    .arms { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .arm-column h3 { margin: 0 0 10px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .joint { display: grid; grid-template-columns: minmax(0, 1fr) 34px 34px 44px; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .joint label { color: #bac5c9; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .joint .jog-key { min-height: 30px; height: 30px; padding: 0; border-bottom-width: 3px; font-size: 11px; font-weight: 650; }
+    .joint .jog-key.active { background: #1d704f; border-color: var(--green); }
+    .joint output { font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; font-size: 11px; }
+    .grippers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .gripper { display: grid; grid-template-columns: minmax(0, 1fr) 52px 52px; align-items: center; gap: 6px; }
+    .gripper button { min-width: 0; padding: 0 6px; border-bottom-width: 3px; font-size: 11px; }
+    .gripper button.active { background: #1d704f; border-color: var(--green); }
+    .gripper button.pressed { outline: 2px solid var(--amber); outline-offset: 1px; }
+    @media (max-width: 980px) {
+      header { height: auto; min-height: 58px; flex-wrap: wrap; padding: 10px 12px; }
+      .brand { min-width: 280px; }
+      .status-strip { order: 3; width: 100%; }
+      main { grid-template-columns: 1fr; height: auto; }
+      .vision { height: 70vh; border-right: 0; }
+      aside { overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-logo-shell"><img class="brand-logo" src="/static/d-robotics-logo.svg" alt="D-Robotics"></span>
+      <span class="brand-copy"><strong>BiGym Desktop Teleop</strong><span id="task">--</span></span>
+    </div>
+    <div class="status-strip">
+      <span class="metric"><i id="connectionDot" class="dot"></i><b id="connection">离线</b></span>
+      <span class="metric">回合 <b id="episodeStep">0</b></span>
+      <span class="metric">Seed <b id="seedValue">--</b></span>
+      <span class="metric">画面 <b id="streamFps">0 fps</b></span>
+      <span class="metric">状态 <b id="runState">--</b></span>
+    </div>
+    <div class="header-actions">
+      <button id="pauseBtn" title="暂停或继续物理步进">暂停</button>
+      <button id="emergencyBtn" class="danger" title="立即清空底盘控制并暂停">紧急停止</button>
+    </div>
+  </header>
+  <main>
+    <section class="vision">
+      <div class="camera">
+        <img id="headCamera" alt="头部相机">
+        <span class="camera-label">HEAD / D455</span>
+        <span class="camera-meta">848 x 480</span>
+      </div>
+      <div class="wrist-row">
+        <div class="camera"><img id="leftCamera" alt="左腕相机"><span class="camera-label">LEFT WRIST / D405</span><span class="camera-meta">640 x 480</span></div>
+        <div class="camera"><img id="rightCamera" alt="右腕相机"><span class="camera-label">RIGHT WRIST / D405</span><span class="camera-meta">640 x 480</span></div>
+      </div>
+    </section>
+    <aside>
+      <section class="section">
+        <h2>回合与采集</h2>
+        <div class="seed-row"><label for="seedInput">Seed</label><input id="seedInput" type="number" value="200000"></div>
+        <div class="episode-grid">
+          <button id="policyBtn" class="primary">启动自动示教</button>
+          <button id="resetBtn">新回合</button>
+          <button id="recordBtn" class="primary">开始采集</button>
+          <button id="discardBtn" class="warn">丢弃</button>
+          <button id="saveBtn" disabled>保存成功轨迹</button>
+        </div>
+        <div id="message" class="message">等待连接</div>
+        <div id="policyPanel" class="policy-panel" hidden>
+          <div class="policy-head"><span>当前阶段 <b id="policyStage">待命</b></span><span id="policyProgressText">0 / 0</span></div>
+          <div id="policyReference" class="policy-head"><span>等待特权定位</span><span>--</span></div>
+          <div id="policyRandomization" class="randomization-line">随机化参数将在重置后显示</div>
+          <progress id="policyProgress" class="policy-progress" value="0" max="1"></progress>
+          <div class="policy-checks">
+            <span id="checkHeld" class="policy-check">夹持餐具</span>
+            <span id="checkTray" class="policy-check">放入餐具托盘</span>
+            <span id="checkDrawer" class="policy-check">关闭餐具抽屉</span>
+            <span id="checkDishwasher" class="policy-check">关闭洗碗机</span>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <h2>浮动底盘</h2>
+        <div class="keys">
+          <span class="key" data-code="KeyQ">Q</span><span class="key" data-code="KeyW">W</span><span class="key" data-code="KeyR">R</span>
+          <span class="key" data-code="KeyA">A</span><span class="key" data-code="KeyS">S</span><span class="key" data-code="KeyD">D</span>
+          <span class="key" data-code="KeyE">E</span><span class="key" data-code="KeyF">F</span><span class="key pause">SPACE<br>STOP</span>
+        </div>
+        <div class="key-caption"><span>W/S 前后 · A/D 平移</span><span>R/F 升降 · Q/E 旋转</span></div>
+      </section>
+      <section class="section">
+        <h2>双臂关节目标</h2>
+        <div id="arms" class="arms"></div>
+      </section>
+      <section class="section">
+        <h2>夹爪</h2>
+        <div class="grippers">
+          <div class="gripper"><span>左夹爪</span><button id="leftGripOpen" title="左夹爪张开">Z 开</button><button id="leftGripClose" title="左夹爪闭合">X 合</button></div>
+          <div class="gripper"><span>右夹爪</span><button id="rightGripOpen" title="右夹爪张开">C 开</button><button id="rightGripClose" title="右夹爪闭合">V 合</button></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const heldKeys = new Set();
+    let socket;
+    let armValues = null;
+    let gripperValues = [0, 0];
+    let controlsBuilt = false;
+    let lastSnapshot = null;
+
+    function send(payload) {
+      if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload));
+    }
+
+    function sendControls() {
+      send({command: "control", keys: [...heldKeys], grippers: gripperValues});
+    }
+
+    function numericSeed() {
+      const value = Number.parseInt($("seedInput").value, 10);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function buildArmControls(controls) {
+      const root = $("arms");
+      root.innerHTML = "";
+      armValues = controls.arms.slice();
+      const keyPairs = [["T", "G"], ["Y", "H"], ["U", "J"], ["I", "K"], ["O", "L"]];
+      [0, 5].forEach((offset, side) => {
+        const column = document.createElement("div");
+        column.className = "arm-column";
+        const heading = document.createElement("h3");
+        heading.textContent = side === 0 ? "LEFT ARM" : "RIGHT ARM";
+        column.appendChild(heading);
+        for (let local = 0; local < 5; local++) {
+          const index = offset + local;
+          const row = document.createElement("div");
+          row.className = "joint";
+          const label = document.createElement("label");
+          label.textContent = controls.arm_names[index].replace(`${side === 0 ? "left" : "right"}_`, "");
+          label.title = controls.arm_names[index];
+          const negative = document.createElement("button");
+          const positive = document.createElement("button");
+          const prefix = side === 0 ? "" : "Shift+";
+          const displayPrefix = side === 0 ? "" : "⇧";
+          negative.className = "jog-key";
+          positive.className = "jog-key";
+          negative.textContent = `${displayPrefix}${keyPairs[local][1]}`;
+          positive.textContent = `${displayPrefix}${keyPairs[local][0]}`;
+          negative.title = `${controls.arm_names[index]} negative`;
+          positive.title = `${controls.arm_names[index]} positive`;
+          bindJogButton(negative, `${prefix}Key${keyPairs[local][1]}`);
+          bindJogButton(positive, `${prefix}Key${keyPairs[local][0]}`);
+          const output = document.createElement("output");
+          output.dataset.armIndex = index;
+          output.textContent = Number(armValues[index]).toFixed(2);
+          row.append(label, negative, positive, output);
+          column.appendChild(row);
+        }
+        root.appendChild(column);
+      });
+      gripperValues = controls.grippers.slice();
+      updateGrippers();
+      controlsBuilt = true;
+    }
+
+    function bindJogButton(button, token) {
+      const release = () => {
+        heldKeys.delete(token);
+        button.classList.remove("active");
+        sendControls();
+      };
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        button.setPointerCapture(event.pointerId);
+        heldKeys.add(token);
+        button.classList.add("active");
+        sendControls();
+      });
+      button.addEventListener("pointerup", release);
+      button.addEventListener("pointercancel", release);
+      button.addEventListener("lostpointercapture", release);
+    }
+
+    function updateArmReadouts(controls) {
+      armValues = controls.arms.slice();
+      gripperValues = controls.grippers.slice();
+      const displayKeys = new Set(controls.display_keys || controls.keys || []);
+      document.querySelectorAll("output[data-arm-index]").forEach((output) => {
+        output.textContent = Number(armValues[Number(output.dataset.armIndex)]).toFixed(2);
+      });
+      document.querySelectorAll(".jog-key").forEach((button) => {
+        const token = button.textContent.startsWith("⇧")
+          ? `Shift+Key${button.textContent.slice(1)}`
+          : `Key${button.textContent}`;
+        button.classList.toggle("active", displayKeys.has(token));
+      });
+      updateGrippers(displayKeys);
+    }
+
+    function updateGrippers(displayKeys = heldKeys) {
+      $("leftGripOpen").classList.toggle("active", gripperValues[0] < 0.5);
+      $("leftGripClose").classList.toggle("active", gripperValues[0] >= 0.5);
+      $("rightGripOpen").classList.toggle("active", gripperValues[1] < 0.5);
+      $("rightGripClose").classList.toggle("active", gripperValues[1] >= 0.5);
+      [["leftGripOpen", "KeyZ"], ["leftGripClose", "KeyX"], ["rightGripOpen", "KeyC"], ["rightGripClose", "KeyV"]].forEach(([id, key]) => {
+        $(id).classList.toggle("pressed", displayKeys.has(key));
+      });
+    }
+
+    function updatePolicy(snapshot) {
+      const s = snapshot.state;
+      const privileged = snapshot.privileged || {};
+      $("policyPanel").hidden = !s.policy_available;
+      $("policyBtn").disabled = !s.policy_available || (s.recording && !s.policy_active);
+      $("policyBtn").textContent = s.policy_active ? "停止自动示教" : "启动自动示教";
+      $("policyBtn").className = s.policy_active ? "danger" : "primary";
+      $("policyStage").textContent = s.policy_stage || "待命";
+      $("policyProgressText").textContent = `${s.policy_step} / ${s.policy_total}`;
+      $("policyProgress").max = Math.max(1, s.policy_total);
+      $("policyProgress").value = s.policy_step;
+      $("policyReference").innerHTML = s.policy_demo_uuid
+        ? `<span>实时闭环 · ${s.policy_reference_count} 条专家参考</span><span title="${s.policy_demo_uuid}">重试 ${privileged.controller_retries || 0}</span>`
+        : `<span>等待特权定位</span><span>${s.policy_reference_count || 0} 条专家</span>`;
+      const randomization = privileged.randomization;
+      $("policyRandomization").textContent = randomization
+        ? `餐叉 (${Number(randomization.fork_position[0]).toFixed(3)}, ${Number(randomization.fork_position[1]).toFixed(3)}) m · 角度 ${Number(randomization.fork_angle_deg).toFixed(1)}° · 下层篮筐 ${Number(randomization.dishwasher_bottom_tray).toFixed(3)}`
+        : "随机化参数将在重置后显示";
+      [["checkHeld", "cutlery_held"], ["checkTray", "cutlery_in_tray"], ["checkDrawer", "drawer_closed"], ["checkDishwasher", "dishwasher_closed"]].forEach(([id, key]) => {
+        $(id).classList.toggle("done", Boolean(privileged[key]));
+      });
+      $("seedInput").disabled = s.policy_active;
+      $("resetBtn").disabled = s.policy_active;
+      $("discardBtn").disabled = !s.recording;
+    }
+
+    function render(snapshot) {
+      lastSnapshot = snapshot;
+      const s = snapshot.state;
+      $("task").textContent = s.task;
+      $("episodeStep").textContent = s.episode_step;
+      $("seedValue").textContent = s.seed;
+      $("streamFps").textContent = `${s.stream_fps.toFixed(1)} fps`;
+      $("runState").textContent = s.success ? "成功" : s.policy_active ? "自动示教" : s.recording ? "采集中" : s.paused ? "已暂停" : "运行中";
+      $("pauseBtn").textContent = s.paused ? "继续" : "暂停";
+      $("saveBtn").disabled = !(s.recording && s.success);
+      $("recordBtn").disabled = s.recording;
+      $("message").textContent = s.message;
+      $("message").className = `message ${s.success ? "success" : ""}`;
+      updatePolicy(snapshot);
+      if (snapshot.images.head) $("headCamera").src = `data:image/jpeg;base64,${snapshot.images.head}`;
+      if (snapshot.images.left_wrist) $("leftCamera").src = `data:image/jpeg;base64,${snapshot.images.left_wrist}`;
+      if (snapshot.images.right_wrist) $("rightCamera").src = `data:image/jpeg;base64,${snapshot.images.right_wrist}`;
+      const displayKeys = new Set(snapshot.controls.display_keys || snapshot.controls.keys || []);
+      document.querySelectorAll(".key[data-code]").forEach((node) => node.classList.toggle("active", displayKeys.has(node.dataset.code)));
+      if (!controlsBuilt) buildArmControls(snapshot.controls);
+      updateArmReadouts(snapshot.controls);
+    }
+
+    function connect() {
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
+      socket = new WebSocket(`${protocol}://${location.host}/ws`);
+      socket.addEventListener("open", () => {
+        $("connection").textContent = "已连接";
+        $("connectionDot").classList.add("online");
+      });
+      socket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "snapshot") render(data);
+        if (data.type === "result") {
+          $("message").textContent = data.message;
+          $("message").className = `message ${data.ok ? "success" : "error"}`;
+        }
+      });
+      socket.addEventListener("close", () => {
+        heldKeys.clear();
+        $("connection").textContent = "重连中";
+        $("connectionDot").classList.remove("online");
+        setTimeout(connect, 1200);
+      });
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target.matches("input")) return;
+      if (event.code === "Space") {
+        event.preventDefault();
+        heldKeys.clear();
+        send({command: "emergency"});
+        return;
+      }
+      const baseCodes = ["KeyW", "KeyS", "KeyA", "KeyD", "KeyR", "KeyF", "KeyQ", "KeyE"];
+      const armCodes = ["KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyI", "KeyK", "KeyO", "KeyL"];
+      const gripperCommands = {
+        KeyZ: [0, 0], KeyX: [0, 1], KeyC: [1, 0], KeyV: [1, 1]
+      };
+      if (gripperCommands[event.code]) {
+        event.preventDefault();
+        const [index, value] = gripperCommands[event.code];
+        gripperValues[index] = value;
+        updateGrippers();
+        sendControls();
+        return;
+      }
+      if (baseCodes.includes(event.code) || armCodes.includes(event.code)) {
+        event.preventDefault();
+        heldKeys.add(armCodes.includes(event.code) && event.shiftKey ? `Shift+${event.code}` : event.code);
+        sendControls();
+      }
+    });
+    document.addEventListener("keyup", (event) => {
+      const directChanged = heldKeys.delete(event.code);
+      const shiftedChanged = heldKeys.delete(`Shift+${event.code}`);
+      const changed = directChanged || shiftedChanged;
+      if (changed) sendControls();
+    });
+    window.addEventListener("blur", () => { heldKeys.clear(); sendControls(); });
+    $("resetBtn").addEventListener("click", () => { controlsBuilt = false; send({command: "reset", seed: numericSeed()}); });
+    $("recordBtn").addEventListener("click", () => { controlsBuilt = false; send({command: "record", seed: numericSeed()}); });
+    $("policyBtn").addEventListener("click", () => {
+      controlsBuilt = false;
+      send({
+        command: lastSnapshot?.state.policy_active ? "policy_stop" : "policy_start",
+        seed: numericSeed()
+      });
+    });
+    $("discardBtn").addEventListener("click", () => send({command: "discard"}));
+    $("saveBtn").addEventListener("click", () => send({command: "save"}));
+    $("pauseBtn").addEventListener("click", () => send({command: "pause"}));
+    $("emergencyBtn").addEventListener("click", () => { heldKeys.clear(); send({command: "emergency"}); });
+    [["leftGripOpen", 0, 0], ["leftGripClose", 0, 1], ["rightGripOpen", 1, 0], ["rightGripClose", 1, 1]].forEach(([id, index, value]) => $(id).addEventListener("click", () => {
+      gripperValues[index] = value;
+      updateGrippers();
+      sendControls();
+    }));
+    connect();
+  </script>
+</body>
+</html>
