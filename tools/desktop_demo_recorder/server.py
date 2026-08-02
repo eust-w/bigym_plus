@@ -35,7 +35,12 @@ from tools.desktop_demo_recorder.privileged_policy import (
 
 
 LOG = logging.getLogger("bigym-desktop-teleop")
-CAMERA_KEYS = ("rgb_head", "rgb_left_wrist", "rgb_right_wrist")
+CAMERA_KEYS = (
+    "rgb_head",
+    "rgb_external",
+    "rgb_left_wrist",
+    "rgb_right_wrist",
+)
 ARM_NAMES = (
     "left_shoulder_pitch",
     "left_shoulder_roll",

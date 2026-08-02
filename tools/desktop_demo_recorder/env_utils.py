@@ -30,6 +30,13 @@ def build_env(
         cameras = [
             CameraConfig(name="head", rgb=True, resolution=(480, 848), fovy=58.0),
             CameraConfig(
+                name="external",
+                rgb=True,
+                resolution=(480, 848),
+                pos=(0.0, -1.55, 2.55),
+                fovy=58.0,
+            ),
+            CameraConfig(
                 name="left_wrist", rgb=True, resolution=(480, 640), fovy=58.0
             ),
             CameraConfig(

@@ -22,7 +22,12 @@ async def main():
     async with aiohttp.ClientSession() as session:
       async with session.ws_connect("ws://127.0.0.1:8765/ws", max_msg_size=4 * 1024 * 1024) as ws:
         first = await receive_until(ws, lambda p: p.get("type") == "snapshot")
-        assert set(first["images"]) == {"head", "left_wrist", "right_wrist"}
+        assert set(first["images"]) == {
+            "head",
+            "external",
+            "left_wrist",
+            "right_wrist",
+        }
         assert len(first["controls"]["arms"]) == 10
 
         await ws.send_json({"command": "record", "seed": 424242})

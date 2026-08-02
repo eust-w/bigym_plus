@@ -164,7 +164,7 @@ python tools/demo_recorder/main.py
 
 ### [Desktop Demo Recorder](tools/desktop_demo_recorder/README.md)
 
-Use a browser-based three-camera operator UI to collect success-gated demonstrations
+Use a browser-based four-camera operator UI to collect success-gated demonstrations
 without VR hardware. The initial implementation includes keyboard control and a
 privileged-state closed-loop controller with expanded, deterministic reset
 randomization for `DishwasherUnloadCutleryLong`.

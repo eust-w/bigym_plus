@@ -100,10 +100,10 @@ def test_reference_milestones_are_complete():
     assert milestones["199949bc66134ef8881c72928605bf2d"]["pinch_relative_xyz"]
 
 
-def test_operator_page_contains_three_cameras_and_closed_loop_controls():
+def test_operator_page_contains_four_cameras_and_closed_loop_controls():
     page = (TOOL_DIR / "static" / "index.html").read_text(encoding="utf-8")
 
-    for camera in ("head", "left_wrist", "right_wrist"):
+    for camera in ("head", "external", "left_wrist", "right_wrist"):
         assert camera in page
     assert "policy_start" in page
     assert "启动自动示教" in page

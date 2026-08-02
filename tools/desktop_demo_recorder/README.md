@@ -5,9 +5,10 @@ Browser-based desktop teleoperation and success-gated demonstration recording fo
 optional privileged-state controller that executes through normal MuJoCo `env.step`
 calls. It never teleports task objects or writes task completion state.
 
-The browser shows the native D455 head view (`848x480`) and two D405 wrist views
-(`640x480`) in one screen. It mirrors base, arm, and gripper commands as virtual key
-presses and displays live task milestones and reset randomization.
+The browser shows the native D455 head view (`848x480`), a fixed elevated side view
+(`848x480`), and two D405 wrist views (`640x480`) in one four-camera grid. It mirrors
+base, arm, and gripper commands as virtual key presses and displays live task
+milestones and reset randomization.
 
 ## Install
 
@@ -107,7 +108,7 @@ MUJOCO_GL=egl python -m tools.desktop_demo_recorder.collect_privileged_batch \
 ```
 
 The command writes a resumable `manifest.jsonl`, `run_summary.json`, and validated
-`.safetensors` files. Run `smoke_ws.py` against a live server to verify the three camera
+`.safetensors` files. Run `smoke_ws.py` against a live server to verify the four camera
 streams, manual controls, pause path, and save-success gate.
 
 The D-Robotics mark in the operator UI is sourced from the

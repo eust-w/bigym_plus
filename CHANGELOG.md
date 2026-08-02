@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added a browser-based desktop demonstration recorder with three-camera streaming,
+- Added a browser-based desktop demonstration recorder with four-camera streaming,
   keyboard control, success-gated saving, and privileged closed-loop collection for
   `DishwasherUnloadCutleryLong`.
 - Added deterministic expanded reset randomization and validated physical milestones
