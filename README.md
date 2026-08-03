@@ -162,6 +162,19 @@ python tools/demo_recorder/main.py
 
 <img src="doc/images/demo_recorder/demo_recorder.png" width=360>
 
+### [Desktop Demo Recorder](tools/desktop_demo_recorder/README.md)
+
+Use a browser-based four-camera operator UI to collect success-gated demonstrations
+without VR hardware. The initial implementation includes keyboard control and a
+privileged-state closed-loop controller with expanded, deterministic reset
+randomization for `DishwasherUnloadCutleryLong`.
+
+```bash
+pip install -e '.[desktop-recorder]'
+MUJOCO_GL=egl python -m tools.desktop_demo_recorder.server \
+  --expert-demo-root "$HOME/.bigym/demonstrations/0.9.0"
+```
+
 ## Contributing
 
 On each PR, please ensure to bump the:

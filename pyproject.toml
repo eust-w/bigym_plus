@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bigym"
-version = "4.2.0"
+version = "4.3.0"
 description = "BiGym: A Demo-Driven Mobile Bi-Manual Manipulation Benchmark"
 readme = "README.md"
 license = "Apache-2.0"
@@ -58,7 +58,11 @@ examples = [
     "opencv-python",
     "matplotlib",
 ]
-all = ["bigym[dev,examples]"]
+desktop-recorder = [
+    "aiohttp>=3.9",
+    "opencv-python>=4.8",
+]
+all = ["bigym[dev,examples,desktop-recorder]"]
 
 [project.urls]
 Homepage = "https://chernyadev.github.io/bigym/"
