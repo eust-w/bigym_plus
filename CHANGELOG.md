@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- None.
+- Demonstration safetensors are now saved atomically so an interrupted or
+  failed write does not corrupt an existing demo file.
 
 ## 4.2.0
 

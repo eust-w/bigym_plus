@@ -2,6 +2,7 @@
 import copy
 import pytest
 import tempfile
+from pathlib import Path
 
 from numpy.testing import assert_allclose
 
@@ -12,6 +13,7 @@ from bigym.envs.reach_target import ReachTarget
 from bigym.envs.manipulation import StackBlocks
 from bigym.utils.observation_config import CameraConfig, ObservationConfig
 from demonstrations.const import ACTION_KEY
+import demonstrations.demo as demo_module
 from demonstrations.demo import Demo
 from demonstrations.demo_recorder import DemoRecorder
 from demonstrations.demo_converter import DemoConverter
@@ -204,3 +206,50 @@ def test_long_running_demo():
         demo = Demo.from_safetensors(filepath)
         assert len(demo.timesteps) == 1000
         TestDemos.assert_replay_observations(env, demo)
+
+
+class _TestMetadata:
+    def ready_for_safetensors(self):
+        return {"source": "atomic-save-test"}
+
+
+def test_failed_demo_save_preserves_existing_file(monkeypatch, tmp_path):
+    target = tmp_path / "demo.safetensors"
+    target.write_bytes(b"existing-demo")
+    temporary_paths = []
+
+    def fail_after_partial_write(_tensors, path, _metadata):
+        temporary_path = Path(path)
+        temporary_paths.append(temporary_path)
+        temporary_path.write_bytes(b"partial-demo")
+        raise RuntimeError("simulated save failure")
+
+    monkeypatch.setattr(demo_module, "save_file", fail_after_partial_write)
+    demo = Demo(_TestMetadata())
+
+    with pytest.raises(RuntimeError, match="simulated save failure"):
+        demo.save(target)
+
+    assert target.read_bytes() == b"existing-demo"
+    assert len(temporary_paths) == 1
+    assert temporary_paths[0].parent == target.parent
+    assert not temporary_paths[0].exists()
+
+
+def test_successful_demo_save_atomically_replaces_existing_file(monkeypatch, tmp_path):
+    target = tmp_path / "demo.safetensors"
+    target.write_bytes(b"existing-demo")
+    temporary_paths = []
+
+    def save_complete_file(_tensors, path, _metadata):
+        temporary_path = Path(path)
+        temporary_paths.append(temporary_path)
+        temporary_path.write_bytes(b"complete-demo")
+
+    monkeypatch.setattr(demo_module, "save_file", save_complete_file)
+    demo = Demo(_TestMetadata())
+
+    assert demo.save(target) == target
+    assert target.read_bytes() == b"complete-demo"
+    assert len(temporary_paths) == 1
+    assert not temporary_paths[0].exists()

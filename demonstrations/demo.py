@@ -1,6 +1,7 @@
 """Class to hold demo."""
 from __future__ import annotations
 import logging
+import os
 import numpy as np
 from collections import defaultdict
 from copy import deepcopy
@@ -9,6 +10,7 @@ from pathlib import Path
 from safetensors import safe_open
 from safetensors.numpy import save_file
 from typing import Optional, Any, Union, Iterable
+import uuid
 
 from gymnasium.core import ActType
 
@@ -282,7 +284,28 @@ class Demo:
             for key, val in timesteps[GYM_INFO_KEY].items()
         }
 
-        save_file(demo_dict, path, self.safetensor_metadata)
+        temporary_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            save_file(demo_dict, temporary_path, self.safetensor_metadata)
+            with temporary_path.open("rb") as temporary_file:
+                os.fsync(temporary_file.fileno())
+            os.replace(temporary_path, path)
+            try:
+                directory_fd = os.open(path.parent, os.O_RDONLY)
+            except OSError:
+                directory_fd = None
+            if directory_fd is not None:
+                try:
+                    os.fsync(directory_fd)
+                except OSError:
+                    pass
+                finally:
+                    os.close(directory_fd)
+        finally:
+            try:
+                temporary_path.unlink()
+            except FileNotFoundError:
+                pass
         logging.info(f"Saved {path}")
         return path
 
