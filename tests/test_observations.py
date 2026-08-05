@@ -84,3 +84,36 @@ def test_camera_pose_config():
     assert np.allclose(camera.get_quaternion(), camera_quat) or np.allclose(
         camera.get_quaternion(), np.negative(camera_quat)
     )
+
+
+def test_camera_fovy_config():
+    """Test camera field of view is set via observation config."""
+    camera_name = "external"
+    fovy = 55.0
+    env = ReachTarget(
+        action_mode=JointPositionActionMode(floating_base=True, absolute=True),
+        observation_config=ObservationConfig(
+            cameras=[CameraConfig(name=camera_name, fovy=fovy)]
+        ),
+    )
+
+    camera_id = env._cameras_map[camera_name][0]
+    assert env.mojo.model.cam_fovy[camera_id] == pytest.approx(fovy)
+
+
+def test_large_camera_resolution_expands_offscreen_buffer():
+    """Test observations can exceed MuJoCo's default offscreen width."""
+    camera_name = "head"
+    resolution = (32, 641)
+    env = ReachTarget(
+        action_mode=JointPositionActionMode(floating_base=True, absolute=True),
+        observation_config=ObservationConfig(
+            cameras=[CameraConfig(name=camera_name, resolution=resolution)]
+        ),
+    )
+
+    observation, _ = env.reset()
+
+    assert env.mojo.model.vis.global_.offheight >= resolution[0]
+    assert env.mojo.model.vis.global_.offwidth >= resolution[1]
+    assert observation[f"rgb_{camera_name}"].shape == (3, *resolution)

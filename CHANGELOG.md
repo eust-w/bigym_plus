@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- None.
+- Optional vertical field-of-view configuration for observation cameras.
 
 ### Changed
 
@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- None.
+- Observation resolutions larger than MuJoCo's default offscreen framebuffer
+  now expand the buffer before renderer initialization.
 
 ## 4.2.0
 

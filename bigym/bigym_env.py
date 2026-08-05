@@ -207,6 +207,19 @@ class BiGymEnv(gym.Env):
 
     def _initialize_renderers(self):
         self._close_renderers()
+        if self._observation_config.cameras:
+            max_height = max(
+                camera.resolution[0] for camera in self._observation_config.cameras
+            )
+            max_width = max(
+                camera.resolution[1] for camera in self._observation_config.cameras
+            )
+            self._mojo.model.vis.global_.offheight = max(
+                self._mojo.model.vis.global_.offheight, max_height
+            )
+            self._mojo.model.vis.global_.offwidth = max(
+                self._mojo.model.vis.global_.offwidth, max_width
+            )
         self.mujoco_renderer: BiGymRenderer = BiGymRenderer(self._mojo)
         for camera_config in self._observation_config.cameras:
             resolution = camera_config.resolution
@@ -235,6 +248,8 @@ class BiGymEnv(gym.Env):
                 camera.set_position(np.array(camera_config.pos))
             if camera_config.quat is not None:
                 camera.set_quaternion(np.array(camera_config.quat))
+            if camera_config.fovy is not None:
+                self._mojo.model.cam_fovy[camera.id] = camera_config.fovy
         return cameras_map
 
     def _close_renderers(self):
