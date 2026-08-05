@@ -88,7 +88,8 @@ class DemoRecorder:
             self._demo_dir.mkdir(parents=True)
         filename = filename or self._demo.metadata.filename
         filepath = self._demo_dir / filename
-        self._demo.save(filepath)
+        filepath = self._demo.save(filepath)
+        self.stop()
         self._demo = None
         self._env = None
         return filepath
