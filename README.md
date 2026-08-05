@@ -104,6 +104,40 @@ env = ReachTarget(
 
 Use `ActionModes` to parameterise how you want to control your robot.
 
+### Headless pixel rendering on Linux GPUs
+
+MuJoCo's built-in renderer uses OpenGL rather than CUDA or ROCm. On a headless
+Linux GPU host, select EGL before importing BiGym or MuJoCo:
+
+```bash
+MUJOCO_GL=egl python examples/benchmark_pixel_observations.py \
+    --steps 200 \
+    --resolution 256
+```
+
+The benchmark fails if the `rgb_head` observation has an unexpected shape,
+contains non-finite values, or is blank, and reports physics-plus-rendering
+steps per second as JSON. Use the same resolution and step count when comparing
+machines.
+
+For multi-GPU hosts, MuJoCo supports selecting an EGL device by index:
+
+```bash
+MUJOCO_GL=egl MUJOCO_EGL_DEVICE_ID=0 \
+    python examples/benchmark_pixel_observations.py
+```
+
+AMD GPUs typically use their Mesa EGL/OpenGL driver for this path; installing
+ROCm is not required for BiGym's built-in MuJoCo observations. Ensure that EGL
+and the Mesa DRI driver are installed and that the process can access
+`/dev/dri/renderD*`.
+Containers must pass through `/dev/dri` and the corresponding `render`/`video`
+group permissions. External policies or renderers may still require ROCm, but
+those dependencies are separate from BiGym.
+
+Use `MUJOCO_GL=osmesa` as a CPU software-rendering fallback. It is useful for
+CI and debugging, but should not be used for GPU throughput comparisons.
+
 ## Working with demonstrations
 
 ### [Demo Store](demonstrations/demo_store.py)
