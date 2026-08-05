@@ -186,6 +186,7 @@ CUDA_VISIBLE_DEVICES=0 MUJOCO_GL=egl python eval_bigym.py \
     --base-url http://localhost:7891 \
     --output-dir eval_videos \
     --n-episodes 50 \
+    --record-trajectories \
     --tag lora
 ```
 
@@ -200,6 +201,7 @@ CUDA_VISIBLE_DEVICES=0 MUJOCO_GL=egl python eval_bigym.py \
 | --max-steps N | 覆盖 max_step_limit.yaml 的 per-task 步数上限 |
 | --seed0 N | 起始随机种子(默认 0, 每 episode 加 1) |
 | --tag <标记> | 视频文件名标记(默认 eval) |
+| --record-trajectories | 可选: 每一步即时追加 state/action/reward/终止信息到 JSONL, episode 结束时原子写 manifest |
 
 action chunk 的 replan/slice 不在客户端控制, 由推理服务侧的配置决定(如 --inference-config.replan-step N). 每个任务的最大步数从 replay_generation/max_step_limit.yaml 读取(单源, maxstep = ceil(任务最长 20Hz 演示步数 × 1.5)).
 
@@ -213,8 +215,14 @@ eval_videos/reach_target_dual/
 ├── ReachTargetDual_lora_ep01_no.mp4
 ├── ...
 ├── ReachTargetDual_lora_ep49_no.mp4
+├── trajectories/lora/
+│   ├── episode-000000/
+│   │   ├── steps.jsonl
+│   │   └── manifest.json
+│   └── ...
 └── results.json
 ```
 
 - 回灌视频: 每 episode 一个 mp4, 文件名 {env}_{tag}_ep{NN}_{ok|no}.mp4, ok/no 标该 episode 成功/失败. 录的是渲染相机(第三方全局视角), 不同于喂模型的 head/双腕三个观测相机; 先用 opencv mp4v 录制, 结束转码成 H.264 + yuv420p + baseline(浏览器/系统预览/移动端通用可播放).
 - results.json: 汇总结果, 含 task / base_url / success_rate / successes(每 episode 布尔) / n_episodes / max_steps.
+- trajectories: 仅在传入 `--record-trajectories` 时创建. `steps.jsonl` 采用追加写并在每条后 fsync, 保存 reset、策略请求/环境异常以及每个 transition 的动作前后 state、模型/环境动作、clip mask、reward、success、terminated、truncated、info、request ID 和请求延迟. `manifest.json` 在 episode 到达 `complete` / `failed` / `interrupted` 时原子替换并保存 JSONL 的 SHA-256. 已有 episode 目录不会被静默覆盖; 重跑请换一个 `--tag`.
