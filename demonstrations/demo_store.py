@@ -121,28 +121,30 @@ class DemoStore:
             if demos:
                 return demos
 
-        # Attempt to get demos at original frequency
+        # Attempt to get demos at original frequency. Keep paths here rather
+        # than materialising every safetensors file before applying ``amount``.
         max_freq_demos_dir = self._create_path(metadata).parent
-        demos = self._get_demos(max_freq_demos_dir, -1)
+        demo_paths = self._get_demo_paths(max_freq_demos_dir, amount)
 
         # Attempt to get raw, lightweight demos
-        if not demos and metadata.observation_mode != ObservationMode.Lightweight:
-            demos = self._get_demos(light_demos_dir, -1)
+        if not demo_paths and metadata.observation_mode != ObservationMode.Lightweight:
+            demo_paths = self._get_demo_paths(light_demos_dir, amount)
 
         # Raising exception if there are no demos at this stage
-        if not demos:
+        if not demo_paths:
             raise DemoNotFoundError(metadata)
 
         # Recreate and cache demos
         with tqdm(
-            total=len(demos),
+            total=len(demo_paths),
             desc="Caching Demos",
             unit="demo",
             leave=True,
         ) as pbar:
             robot = metadata.get_robot()
             env = metadata.get_env(frequency)
-            for demo in demos:
+            for demo_path in demo_paths:
+                demo = Demo.from_safetensors(demo_path)
                 if self.demo_exists(metadata, frequency, demo.uuid):
                     pbar.update()
                     continue
@@ -158,7 +160,8 @@ class DemoStore:
                 pbar.update()
         return self._get_demos(demos_dir, amount)
 
-    def _get_demos(self, demos_dir: Path, amount: int) -> list[Demo]:
+    def _get_demo_paths(self, demos_dir: Path, amount: int) -> list[Path]:
+        """Return shuffled demo paths, limited before deserialisation."""
         self.pull_demos()
         if not demos_dir.exists():
             return []
@@ -169,7 +172,13 @@ class DemoStore:
         np.random.shuffle(files)
         if amount > 0:
             files = files[:amount]
-        return [Demo.from_safetensors(file) for file in files]
+        return files
+
+    def _get_demos(self, demos_dir: Path, amount: int) -> list[Demo]:
+        return [
+            Demo.from_safetensors(file)
+            for file in self._get_demo_paths(demos_dir, amount)
+        ]
 
     def _get_demos_count(self, demos_dir: Path) -> int:
         self.pull_demos()

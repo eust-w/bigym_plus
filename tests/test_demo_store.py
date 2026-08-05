@@ -1,6 +1,7 @@
 """Test demonstration storing system."""
 import tempfile
 
+import numpy as np
 import pytest
 from pathlib import Path
 from typing import Optional
@@ -310,6 +311,27 @@ class TestDemoStore:
         for i in range(0, 11, 2):
             demos_from_store = temp_demo_store.get_demos(metadata, amount=i)
             assert len(demos_from_store) == i
+
+    def test_loads_only_requested_demo_files(
+        self, temp_demo_store, monkeypatch, tmp_path
+    ):
+        demos_dir = tmp_path / "source-demos"
+        demos_dir.mkdir()
+        for index in range(5):
+            (demos_dir / f"{index}{SAFETENSORS_SUFFIX}").touch()
+
+        loaded_paths = []
+        monkeypatch.setattr(np.random, "shuffle", lambda _paths: None)
+        monkeypatch.setattr(
+            Demo,
+            "from_safetensors",
+            lambda path: loaded_paths.append(path) or path,
+        )
+
+        demos = temp_demo_store._get_demos(demos_dir, amount=2)
+
+        assert demos == loaded_paths
+        assert len(loaded_paths) == 2
 
     def test_implicit_saving_of_lightweight_demos(self, temp_demo_store):
         demo = _generate_simple_demo()

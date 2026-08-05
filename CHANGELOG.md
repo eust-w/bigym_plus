@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- None.
+- Demo fallback conversion now loads only the requested number of safetensors
+  files instead of materialising the complete task archive first.
 
 ## 4.2.0
 
